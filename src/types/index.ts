@@ -4,10 +4,17 @@ export interface User {
   email: string;
   phone: string;
   createdAt: Date;
+  updatedAt: Date;
 }
 
-export interface UserFormData {
+export interface CreateUserData {
   name: string;
   email: string;
   phone: string;
+}
+
+export interface UpdateUserData {
+  name?: string;
+  email?: string;
+  phone?: string;
 } 

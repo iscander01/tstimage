@@ -15,37 +15,53 @@ const UserList: React.FC<UserListProps> = ({ users, onEdit, onDelete }) => {
 
   return (
     <div className="user-list">
-      <h2>Users ({users.length})</h2>
-      {users.length === 0 ? (
-        <p className="no-users">No users found. Add your first user!</p>
-      ) : (
-        <div className="users-grid">
-          {users.map((user) => (
-            <div key={user.id} className="user-card">
-              <div className="user-info">
-                <h3>{user.name}</h3>
-                <p><strong>Email:</strong> {user.email}</p>
-                <p><strong>Phone:</strong> {user.phone}</p>
-                <p><strong>Created:</strong> {formatDate(user.createdAt)}</p>
-              </div>
-              <div className="user-actions">
-                <button
-                  className="btn btn-edit"
-                  onClick={() => onEdit(user)}
-                >
-                  Edit
-                </button>
-                <button
-                  className="btn btn-delete"
-                  onClick={() => onDelete(user.id)}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      <table className="user-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Created</th>
+            <th>Updated</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.length === 0 ? (
+            <tr>
+              <td colSpan={6} className="no-data">
+                No users found. Add your first user!
+              </td>
+            </tr>
+          ) : (
+            users.map(user => (
+              <tr key={user.id}>
+                <td>{user.name}</td>
+                <td>{user.email}</td>
+                <td>{user.phone}</td>
+                <td>{formatDate(user.createdAt)}</td>
+                <td>{formatDate(user.updatedAt)}</td>
+                <td className="actions">
+                  <button
+                    className="btn btn-edit"
+                    onClick={() => onEdit(user)}
+                    title="Edit user"
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    className="btn btn-delete"
+                    onClick={() => onDelete(user.id)}
+                    title="Delete user"
+                  >
+                    🗑️
+                  </button>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
     </div>
   );
 };

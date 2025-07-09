@@ -1,99 +1,91 @@
 import React, { useState, useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import { User, UserFormData } from './types';
+import './App.css';
+import Header from './components/Header';
 import UserList from './components/UserList';
 import UserForm from './components/UserForm';
-import './App.css';
+import { User, CreateUserData, UpdateUserData } from './types';
+import { UserService } from './services/userService';
 
-const App: React.FC = () => {
+function App() {
   const [users, setUsers] = useState<User[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | undefined>(undefined);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
-  // Load users from localStorage on component mount
   useEffect(() => {
-    const savedUsers = localStorage.getItem('users');
-    if (savedUsers) {
-      const parsedUsers = JSON.parse(savedUsers).map((user: any) => ({
-        ...user,
-        createdAt: new Date(user.createdAt)
-      }));
-      setUsers(parsedUsers);
-    }
+    loadUsers();
   }, []);
 
-  // Save users to localStorage whenever users state changes
-  useEffect(() => {
-    localStorage.setItem('users', JSON.stringify(users));
-  }, [users]);
-
-  const handleAddUser = (userData: UserFormData) => {
-    const newUser: User = {
-      id: uuidv4(),
-      ...userData,
-      createdAt: new Date()
-    };
-    setUsers(prev => [...prev, newUser]);
-    setShowForm(false);
+  const loadUsers = () => {
+    const allUsers = UserService.getAllUsers();
+    setUsers(allUsers);
   };
 
-  const handleEditUser = (userData: UserFormData) => {
-    if (editingUser) {
-      setUsers(prev => prev.map(user => 
-        user.id === editingUser.id 
-          ? { ...user, ...userData }
-          : user
-      ));
-      setEditingUser(undefined);
-      setShowForm(false);
-    }
+  const handleAddUser = () => {
+    setEditingUser(null);
+    setIsEditing(false);
+    setShowForm(true);
+  };
+
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+    setIsEditing(true);
+    setShowForm(true);
   };
 
   const handleDeleteUser = (id: string) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
-      setUsers(prev => prev.filter(user => user.id !== id));
+      const success = UserService.deleteUser(id);
+      if (success) {
+        loadUsers();
+      }
     }
   };
 
-  const openEditForm = (user: User) => {
-    setEditingUser(user);
-    setShowForm(true);
+  const handleFormSubmit = (data: CreateUserData | UpdateUserData) => {
+    if (isEditing && editingUser) {
+      const updatedUser = UserService.updateUser(editingUser.id, data as UpdateUserData);
+      if (updatedUser) {
+        loadUsers();
+        setShowForm(false);
+        setEditingUser(null);
+        setIsEditing(false);
+      }
+    } else {
+      UserService.createUser(data as CreateUserData);
+      loadUsers();
+      setShowForm(false);
+    }
   };
 
-  const closeForm = () => {
+  const handleFormCancel = () => {
     setShowForm(false);
-    setEditingUser(undefined);
+    setEditingUser(null);
+    setIsEditing(false);
   };
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <h1>User Management System</h1>
-        <button 
-          className="btn btn-primary add-user-btn"
-          onClick={() => setShowForm(true)}
-        >
-          Add New User
-        </button>
-      </header>
-
-      <main className="app-main">
-        <UserList 
-          users={users}
-          onEdit={openEditForm}
-          onDelete={handleDeleteUser}
-        />
+    <div className="App">
+      <Header onAddUser={handleAddUser} />
+      <main className="main-content">
+        <div className="container">
+          <UserList 
+            users={users} 
+            onEdit={handleEditUser} 
+            onDelete={handleDeleteUser} 
+          />
+        </div>
       </main>
-
       {showForm && (
         <UserForm
-          user={editingUser}
-          onSubmit={editingUser ? handleEditUser : handleAddUser}
-          onCancel={closeForm}
+          user={editingUser || undefined}
+          onSubmit={handleFormSubmit}
+          onCancel={handleFormCancel}
+          isEditing={isEditing}
         />
       )}
     </div>
   );
-};
+}
 
-export default App; 
+export default App;

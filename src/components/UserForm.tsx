@@ -1,29 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { User, UserFormData } from '../types';
+import { User, CreateUserData, UpdateUserData } from '../types';
 import './UserForm.css';
 
 interface UserFormProps {
   user?: User;
-  onSubmit: (userData: UserFormData) => void;
+  onSubmit: (data: CreateUserData | UpdateUserData) => void;
   onCancel: () => void;
+  isEditing: boolean;
 }
 
-const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, onCancel }) => {
-  const [formData, setFormData] = useState<UserFormData>({
+const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, onCancel, isEditing }) => {
+  const [formData, setFormData] = useState<CreateUserData>({
     name: '',
     email: '',
     phone: ''
   });
 
   useEffect(() => {
-    if (user) {
+    if (user && isEditing) {
       setFormData({
         name: user.name,
         email: user.email,
         phone: user.phone
       });
     }
-  }, [user]);
+  }, [user, isEditing]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -41,7 +42,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, onCancel }) => {
   return (
     <div className="user-form-overlay">
       <div className="user-form">
-        <h2>{user ? 'Edit User' : 'Add New User'}</h2>
+        <h2>{isEditing ? 'Edit User' : 'Add New User'}</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="name">Name:</label>
@@ -78,7 +79,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, onCancel }) => {
           </div>
           <div className="form-actions">
             <button type="submit" className="btn btn-primary">
-              {user ? 'Update' : 'Add'}
+              {isEditing ? 'Update' : 'Create'}
             </button>
             <button type="button" className="btn btn-secondary" onClick={onCancel}>
               Cancel
